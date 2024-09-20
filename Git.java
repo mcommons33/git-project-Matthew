@@ -10,23 +10,21 @@ public class Git {
    public static void initalizeGitRepo() {
 
       // creates the folders git and objects
-      File folder = new File("/git/objects");
+      File folder = new File("./git/objects");
       if (!folder.exists()) {
          folder.mkdirs();
       }
 
+      // creates the file index
       File file = new File(folder, "index");
-      String filePath = file.getAbsolutePath();
-      // System.out.println(file.getAbsolutePath());
-
+      String filePath = file.getPath();
+      // if not exist, create; else, say exist
       if (!file.exists()) {
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath))) {
          } catch (IOException e) {
             e.printStackTrace();
          }
-      }
-      else
-      {
+      } else {
          System.out.println("Git Repository already exists");
       }
 

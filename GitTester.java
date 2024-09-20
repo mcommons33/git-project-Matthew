@@ -1,13 +1,15 @@
 import java.io.File;
+import java.nio.file.Files;
 
 public class GitTester {
+    // compete wip
     public static void main(String[] args) {
 
-        File folder = new File("/git/objects");
-        if (!folder.exists()) {
-            folder.delete();
-        }
-        Git.initalizeGitRepo();
+        System.out.println(Files.exists("./git/objects/index"));
+        // if (Files.exists("index")) {
+        //     folder.delete();
+        // }
+        //Git.initalizeGitRepo();
 
     }
 }
