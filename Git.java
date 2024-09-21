@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.nio.file.*;
+import java.security.MessageDigest;
 import java.io.*;
 
 public class Git {
@@ -9,28 +10,35 @@ public class Git {
 
    public static void initalizeGitRepo() {
 
-      // creates the folders git and objects
-      File folder = new File("./git/objects");
-      if (!folder.exists()) {
-         folder.mkdirs();
-      }
+      File gitFolder = new File("./git"); // git folder
+      File objectsFolder = new File("./git/objects"); // objects folder
+      File file = new File("./git", "index"); // index file
 
-      // creates the file index
-      File file = new File(folder, "index");
-      String filePath = file.getPath();
-      // if not exist, create; else, say exist
-      if (!file.exists()) {
-         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath))) {
-         } catch (IOException e) {
-            e.printStackTrace();
-         }
-      } else {
+      if (objectsFolder.exists() && file.exists()) {
          System.out.println("Git Repository already exists");
       }
 
+      // creates the git folder
+      if (!gitFolder.exists()) {
+         gitFolder.mkdirs();
+      }
+
+      // creates the objects folder
+      if (!objectsFolder.exists()) {
+         objectsFolder.mkdirs();
+      }
+
+      // creates the file index
+      String filePath = file.getPath();
+      try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath))) {
+         bufferedWriter.write("");
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+
    }
 
-   public static String gitBlob() {
-      BufferedWriter bw = new BufferedWriter();
-   }
+   // public static String gitBlob(File file) {
+
+   // }
 }
