@@ -3,18 +3,9 @@ import java.security.MessageDigest;
 import java.io.*;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Blob;
 
 public class Git {
-   public static void main(String[] args) {
-      try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("testingFile"))) {
-         bufferedWriter.write("look behind you");
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
-      File gitFolder = new File("./testingFile");
-      System.out.println(gitBlob(gitFolder));
-   }
-
    // initalizes a Git Repo with an "objects" folder and "index" file
    public static void initalizeGitRepo() {
       File gitFolder = new File("./git"); // git folder
@@ -45,24 +36,12 @@ public class Git {
 
    }
 
-   public static String gitBlob(File file) {
-      
-      // converts data in the file into a long string
-      StringBuilder sb = new StringBuilder();
-      try (BufferedReader bf = new BufferedReader(new FileReader(file));) {
-         while (bf.ready()) {
-            sb.append(bf.readLine());
-         }
-      } catch (IOException e) {
-         e.printStackTrace();
-      }
-      String input = sb.toString();
-      //////
-
-      // hashes the string
+   // hashes the content of a file using SHA1
+   public static String SHA1Hashing(File file) {
+      String content = fileContent(file); // getting the content
       try {
          MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-         crypt.update(input.getBytes("UTF-8"));
+         crypt.update(content.getBytes("UTF-8"));
          BigInteger temp = new BigInteger(1, crypt.digest());
          return temp.toString(16);
       } catch (NoSuchAlgorithmException e) {
@@ -71,9 +50,52 @@ public class Git {
          e.printStackTrace();
       }
 
+      // this is here bc otherwise there is an error message. well can anyone actually
+      // bypass the "try"?
+      return "error";
+   }
 
-      // this is here bc otherwise there is an error message. well can anyone actually bypass the "try"?
-      return "error"; 
+   // converts data in the file into a single string
+   private static String fileContent(File file) {
+      StringBuilder sb = new StringBuilder();
+      try (BufferedReader bf = new BufferedReader(new FileReader(file));) {
+         while (bf.ready()) {
+            sb.append(bf.readLine());
+            if (bf.ready()) {
+               // if has next line, then add a "\n"
+               sb.append("\n");
+            }
+         }
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+      return sb.toString();
+   }
+
+   public static void blobCreation(File file) {
+      String name = SHA1Hashing(file); // getting the hashed name
+      String content = fileContent(file); // getting the content
+
+      File blobFile = new File("./git/objects", name); // the blob file
+      // creates the blob file
+      String path = blobFile.getPath();
+      try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
+         bufferedWriter.write(content);
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+
+      // adds a new line into the index file
+      try {
+         FileWriter fw = new FileWriter("./git/index", true);
+         BufferedWriter bufferedWriter = new BufferedWriter(fw);
+         // writes the content into index
+         bufferedWriter.write(name + " " + file.getName() + "\n");
+         bufferedWriter.close();
+      } catch (IOException e) {
+         e.printStackTrace();
+      }
+
    }
 
 }
