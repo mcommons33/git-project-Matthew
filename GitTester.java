@@ -3,34 +3,36 @@ import java.security.MessageDigest;
 import java.io.*;
 
 public class GitTester {
-    // compete wip
-    // need to know why delete is not working
     public static void main(String[] args) {
-        //testing file creation
+        // testing file creation
         deleteGitFolder();
         Git.initalizeGitRepo();
 
         // testing blob creation
-        File tester1 = fileCreation("test1", "look behind you");
+        File tester1 = fileCreation("tester1", "look behind you");
         File tester2 = fileCreation("tester2", "hi\nthis is sonarii");
         Git.blobCreation(tester1);
         Git.blobCreation(tester2);
         File tester3 = fileCreation("tester3", "hmmm");
         Git.blobCreation(tester3);
 
+        // testing file deletion
+        deleteTesters();
+
     }
 
+    // creates a file with given name and content
     private static File fileCreation(String name, String content) {
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(name))) {
             bufferedWriter.write(content);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new File("./"+name);
+        return new File("./" + name);
     }
 
+    // deletes the git Repo (including index and objects)
     private static void deleteGitFolder() {
-        // deletes the git Repo
         String path = "./git";
         File toBeDelete = new File(path + "/objects");
         deleteHelper(toBeDelete);
@@ -38,6 +40,27 @@ public class GitTester {
         deleteHelper(toBeDelete);
         toBeDelete = new File(path);
         deleteHelper(toBeDelete);
+    }
+
+    // delete the 3 testers created (tester1, tester2, tester3) + its content in
+    // index and objects folder
+    private static void deleteTesters() {
+        File toBeDelete = new File("./tester1");
+        deleteHelper(toBeDelete);
+        toBeDelete = new File("./tester2");
+        deleteHelper(toBeDelete);
+        toBeDelete = new File("./tester3");
+        deleteHelper(toBeDelete);
+        toBeDelete = new File("./git/index");
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("./git/index"))) {
+            bufferedWriter.write("");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        File objectesFolder = new File("./git/objects");
+        for (File subfile : objectesFolder.listFiles()) {
+            subfile.delete();
+        }
     }
 
     private static void deleteHelper(File toBeDelete) {

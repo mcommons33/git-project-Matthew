@@ -90,8 +90,17 @@ public class Git {
          FileWriter fw = new FileWriter("./git/index", true);
          BufferedWriter bufferedWriter = new BufferedWriter(fw);
          // writes the content into index
-         bufferedWriter.write(name + " " + file.getName() + "\n");
+         FileReader checks = new FileReader("./git/index");
+         if (!checks.ready()) {
+            bufferedWriter.write(name + " " + file.getName());
+         } else {
+            bufferedWriter.write("\n" + name + " " + file.getName());
+
+         }
+
+         // bufferedWriter.write(name + " " + file.getName() + "\n");
          bufferedWriter.close();
+         checks.close();
       } catch (IOException e) {
          e.printStackTrace();
       }
