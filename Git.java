@@ -127,6 +127,7 @@ public abstract class Git {
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (dirFile))) {
             while (br.ready())
                bufferedWriter.write(br.read());
+            dirFile.delete();
          }
          catch (IOException e) {
             e.printStackTrace();
@@ -149,6 +150,8 @@ public abstract class Git {
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (file))) {
             while (br.ready())
                bufferedWriter.write(br.read());
+            bufferedWriter.close();
+            br.close();
          }
          catch (IOException e) {
             e.printStackTrace();
