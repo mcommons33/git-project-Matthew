@@ -69,18 +69,32 @@ public abstract class Git {
    }
    // creating tree file for a directory
    private static File getDirFile(File file) throws IOException {
-      File dirFile = File.createTempFile("dirFile", null);
-      FileWriter fw = new FileWriter(dirFile);
-      File [] fileList = file.listFiles();
-      for (int i =0; i < fileList.length; i++){
-         if (fileList[i].isDirectory())
-            fw.write("tree " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
-         else
-            fw.write("blob " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
-         if (i > 0)
-            fw.write("\n");
+         File dirFile = new File ("./dirFile");
+         BufferedWriter fw = new BufferedWriter(new FileWriter(dirFile));
+         File [] fileList = file.listFiles();
+      try{
+         for (int i = 0; i < fileList.length; i++){
+            if (i != fileList.length){
+               if (fileList[i].isDirectory())
+                  fw.write("tree " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName() + "\n");
+               else
+                  fw.write("blob " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName() + "\n");
+            }
+            else{
+               if (fileList[i].isDirectory())
+                  fw.write("tree " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
+               else
+                  fw.write("blob " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
+            }
+               
+         }
+         fw.close();
+         return dirFile;
       }
-      return dirFile;
+      catch (IOException e){
+         e.printStackTrace();
+         return dirFile;
+      }
    }
 
    // converts data in the file into a single string
@@ -101,11 +115,14 @@ public abstract class Git {
    }
 
    public static void blobCreation(File file) throws IOException {
+      if(!file.exists()){
+         throw new FileNotFoundException();
+      }
       String name;
       if (file.isDirectory()){
          File dirFile = getDirFile(file);
          name = SHA1Hashing(dirFile); //getting hashed name
-         File blobFile = new File("./git/objects/" + name); // the blob file
+         File blobFile = new File("./git/objects", name); // the blob file
          // creates the blob file
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (dirFile))) {
             while (br.ready())

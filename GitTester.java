@@ -20,16 +20,13 @@ public class GitTester {
         Git.blobCreation(testDir);
         // testing blob creation: dir with files
         File testDirFiles = new File ("./testDirFiles");
-        new File ("./testDirFiles/test1");
-        new File ("./testDirFiles/test2");
-        new File ("./testDirFiles/test3");
+        testDirFiles.mkdir();
         Git.blobCreation(testDirFiles);
         // testing blob creation: dir with files and subdirs
         File testDirDirs = new File ("./testDirDirs");
         File subDirs = new File ("./testDirDirs/test/testSub");
         testDirDirs.mkdir();
         subDirs.mkdirs();
-        new File ("./testDirDirs/test1");
         Git.blobCreation(testDirDirs);
         // testing file deletion
         deleteTesters();
