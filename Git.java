@@ -165,14 +165,14 @@ public abstract class Git {
          FileReader checks = new FileReader("./git/index");
          if (!checks.ready()) {
             if (file.isDirectory())
-               bufferedWriter.write("tree " + name + " " + file.getName());
+               bufferedWriter.write("tree " + name + " " + file.getPath());
             else
-               bufferedWriter.write("blob " + name + " " + file.getName());
+               bufferedWriter.write("blob " + name + " " + file.getPath());
          } else {
             if (file.isDirectory())
-               bufferedWriter.write("\ntree " + name + " " + file.getName());
+               bufferedWriter.write("\ntree " + name + " " + file.getPath());
             else
-               bufferedWriter.write("\nblob " + name + " " + file.getName());
+               bufferedWriter.write("\nblob " + name + " " + file.getPath());
          }
 
          // bufferedWriter.write(name + " " + file.getName() + "\n");
