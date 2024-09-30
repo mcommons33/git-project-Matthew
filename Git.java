@@ -37,21 +37,11 @@ public abstract class Git {
 
    // hashes the content of a file using SHA1
    public static String SHA1Hashing(File file) throws IOException {
-      if(file.isDirectory()){
-         try {
-         File dirFile = getDirFile(file);
-         MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-         byte [] sha1bytes = crypt.digest(Files.readAllBytes(dirFile.toPath()));
-         crypt.update(sha1bytes);
-         BigInteger temp = new BigInteger(1, crypt.digest());
-         return temp.toString(16);
-      } catch (NoSuchAlgorithmException e) {
-         e.printStackTrace();
-      } catch (UnsupportedEncodingException e) {
-         e.printStackTrace();
-      }
-      }
-      String content = fileContent(file); // getting the content
+      String content;
+      if(file.isDirectory())
+         content = fileContent(getDirFile(file));
+      else
+         content = fileContent(file); // getting the content
       try {
          MessageDigest crypt = MessageDigest.getInstance("SHA-1");
          crypt.update(content.getBytes("UTF-8"));
@@ -69,31 +59,32 @@ public abstract class Git {
    }
    // creating tree file for a directory
    private static File getDirFile(File file) throws IOException {
-         File dirFile = new File ("./dirFile");
-         BufferedWriter fw = new BufferedWriter(new FileWriter(dirFile));
-         File [] fileList = file.listFiles();
       try{
+         File tempFile = File.createTempFile("tempFile", null);
+         FileWriter fw = new FileWriter(tempFile);
+         File [] fileList = file.listFiles();
          for (int i = 0; i < fileList.length; i++){
-            if (i != fileList.length){
+            String hash = SHA1Hashing(fileList[i]);
+            if (i < fileList.length - 1){
                if (fileList[i].isDirectory())
-                  fw.write("tree " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName() + "\n");
+                  fw.write("tree " + hash + " " + fileList[i].getName() + "\n"); // when calling sha1 hash dirFile gets reset to having content so when writing again it goes in the middle
                else
-                  fw.write("blob " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName() + "\n");
+                  fw.write("blob " + hash + " " + fileList[i].getName() + "\n");
             }
             else{
                if (fileList[i].isDirectory())
-                  fw.write("tree " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
+                  fw.write("tree " + hash + " " + fileList[i].getName());
                else
-                  fw.write("blob " + SHA1Hashing(fileList[i]) + " " + fileList[i].getName());
+                  fw.write("blob " + hash + " " + fileList[i].getName());
             }
                
          }
          fw.close();
-         return dirFile;
+         return tempFile;
       }
       catch (IOException e){
          e.printStackTrace();
-         return dirFile;
+         return File.createTempFile("tempFile", null);
       }
    }
 
@@ -127,7 +118,8 @@ public abstract class Git {
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (dirFile))) {
             while (br.ready())
                bufferedWriter.write(br.read());
-            dirFile.delete();
+            br.close();
+            bufferedWriter.close();
          }
          catch (IOException e) {
             e.printStackTrace();
@@ -161,18 +153,34 @@ public abstract class Git {
       try {
          FileWriter fw = new FileWriter("./git/index", true);
          BufferedWriter bufferedWriter = new BufferedWriter(fw);
-         // writes the content into index
+         // writes the content into index by first checking to see if the index file has been written into or not, (to determine if a /n is needed)
+         // and then if the file is a directory or not, (to determine if tree or blob) and then if the file is in a subdir or if it is in the home dir
+         // (to determine whether to write the parent dir or not)
          FileReader checks = new FileReader("./git/index");
          if (!checks.ready()) {
-            if (file.isDirectory())
-               bufferedWriter.write("tree " + name + " " + file.getPath());
-            else
-               bufferedWriter.write("blob " + name + " " + file.getPath());
+            if (file.isDirectory()){
+               if(isInHomeDir(file))
+                  bufferedWriter.write("tree " + name + " " + file.getName());
+               else
+                  bufferedWriter.write("tree " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+            }else{
+               if (isInHomeDir(file))
+                  bufferedWriter.write("blob " + name + " " + file.getName());
+               else
+                  bufferedWriter.write("blob " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+            }
          } else {
-            if (file.isDirectory())
-               bufferedWriter.write("\ntree " + name + " " + file.getPath());
-            else
-               bufferedWriter.write("\nblob " + name + " " + file.getPath());
+            if (file.isDirectory()){
+               if (isInHomeDir(file))
+                  bufferedWriter.write("\ntree " + name + " " + file.getName());
+               else
+                  bufferedWriter.write("\ntree " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+            } else {
+               if(isInHomeDir(file))
+                  bufferedWriter.write("\nblob " + name + " " + file.getName());
+               else
+                  bufferedWriter.write("\nblob " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+            }
          }
 
          // bufferedWriter.write(name + " " + file.getName() + "\n");
@@ -183,5 +191,7 @@ public abstract class Git {
       }
 
    }
-
+   private static boolean isInHomeDir (File file){
+      return file.getParentFile().getPath().equals(".");
+   }
 }
