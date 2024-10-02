@@ -1,12 +1,13 @@
-import java.security.MessageDigest;
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public abstract class Git {
+public abstract class Git implements GitInterface {
    // initalizes a Git Repo with an "objects" folder and "index" file
-   public static void initalizeGitRepo() {
+   public static void initalizeGitRepo() throws IOException {
+      File head = new File ("./git/HEAD");
+      head.createNewFile();
       File gitFolder = new File("./git"); // git folder
       File objectsFolder = new File("./git/objects"); // objects folder
       File file = new File("./git", "index"); // index file
@@ -36,6 +37,22 @@ public abstract class Git {
    }
 
    // hashes the content of a file using SHA1
+   public static String SHA1Hashing(String file) throws IOException {
+      try {
+         MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+         crypt.update(file.getBytes("UTF-8"));
+         BigInteger temp = new BigInteger(1, crypt.digest());
+         return temp.toString(16);
+      } catch (NoSuchAlgorithmException e) {
+         e.printStackTrace();
+      } catch (UnsupportedEncodingException e) {
+         e.printStackTrace();
+      }
+
+      // this is here bc otherwise there is an error message. well can anyone actually
+      // bypass the "try"?
+      return "error";
+   }
    public static String SHA1Hashing(File file) throws IOException {
       String content;
       if(file.isDirectory())
@@ -105,6 +122,55 @@ public abstract class Git {
       return sb.toString();
    }
 
+   public String generateRootTree() throws IOException {
+      File headFile = new File ("./git/HEAD");
+      File indexFile = new File ("./git/index");
+      String toReturn = "";
+      if (fileContent(headFile).equals("")) {
+         blobCreation(indexFile);
+         toReturn = SHA1Hashing(indexFile);
+      }
+      else {
+         String hashOfPreviousCommit = fileContent(headFile);
+         File previousCommit = new File ("./git/objects", hashOfPreviousCommit);
+         BufferedReader br = new BufferedReader (new FileReader (previousCommit));
+         String treeHash = br.readLine();
+         br.close();
+         treeHash.replace("tree: ", "");
+         File previousTree = new File ("./git/objects", treeHash);
+         String contentsOfPrevious = fileContent(previousTree);
+         String updatedTree = contentsOfPrevious + fileContent(indexFile);
+         String hashTree = SHA1Hashing(updatedTree);
+         File treeFile = new File ("./git/objects", hashTree);
+         BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeFile));
+         treeWriter.write(updatedTree);
+         treeWriter.close();
+         toReturn = hashTree;
+         
+      }
+      indexFile.delete();
+      indexFile.createNewFile();
+      return toReturn;
+   }
+   public String makeCommit(String author, String message) throws IOException {
+      File headFile = new File ("./git/HEAD");
+      StringBuilder sb = new StringBuilder("");
+      sb.append("tree: ").append(generateRootTree()).append("\n").append("parent: ").append(fileContent(headFile)).append("\n").append(author + "\n").append(java.time.LocalDate.now() + "\n").append(message);
+      String commitHash = SHA1Hashing(sb.toString());
+      File commitFile = new File ("./git/objects", commitHash);
+      commitFile.createNewFile();
+      BufferedWriter bw = new BufferedWriter (new FileWriter (commitFile));
+      bw.write(sb.toString());
+      bw.close();
+      headFile.delete();
+      headFile.createNewFile();
+      BufferedWriter bHead = new BufferedWriter(new FileWriter (headFile));
+      bHead.write(commitHash);
+      bHead.close();
+      return commitHash;
+
+   }
+
    public static void blobCreation(File file) throws IOException {
       if(!file.exists()){
          throw new FileNotFoundException();
@@ -138,6 +204,10 @@ public abstract class Git {
       else{
          name = SHA1Hashing(file); // getting hashed name
          File blobFile = new File("./git/objects/" + name); // the blob file
+         BufferedWriter headBR = new BufferedWriter(new FileWriter("./git/HEAD"));
+         headBR.write(name);
+         headBR.close();
+
          // creates the blob file
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (file))) {
             while (br.ready())
@@ -191,6 +261,7 @@ public abstract class Git {
       }
 
    }
+
    private static boolean isInHomeDir (File file){
       return file.getParentFile().getPath().equals(".");
    }
