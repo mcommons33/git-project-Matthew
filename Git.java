@@ -3,11 +3,32 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public abstract class Git implements GitInterface {
+public class Git implements GitInterface {
    // initalizes a Git Repo with an "objects" folder and "index" file
+   public void stage (String filePath) {
+      File fileToStage = new File (filePath);
+      try {
+         blobCreation(fileToStage);
+      } catch (IOException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+   }
+
+   public String commit (String author, String message) throws IOException {
+      return makeCommit(author, message);
+   }
+
+   public void checkout (String commitHash) throws IOException {
+      File headFile = new File ("./git/objects");
+      headFile.delete();
+      headFile.createNewFile();
+      BufferedWriter headBR = new BufferedWriter(new FileWriter (headFile));
+      headBR.write(commitHash);
+      headBR.close();      
+   }
+
    public static void initalizeGitRepo() throws IOException {
-      File head = new File ("./git/HEAD");
-      head.createNewFile();
       File gitFolder = new File("./git"); // git folder
       File objectsFolder = new File("./git/objects"); // objects folder
       File file = new File("./git", "index"); // index file
@@ -33,7 +54,8 @@ public abstract class Git implements GitInterface {
       } catch (IOException e) {
          e.printStackTrace();
       }
-
+      File head = new File ("./git/HEAD");
+      head.createNewFile();
    }
 
    // hashes the content of a file using SHA1
@@ -126,9 +148,9 @@ public abstract class Git implements GitInterface {
       File headFile = new File ("./git/HEAD");
       File indexFile = new File ("./git/index");
       String toReturn = "";
-      if (fileContent(headFile).equals("")) {
-         blobCreation(indexFile);
+      if (headFile.length() == 0) {
          toReturn = SHA1Hashing(indexFile);
+         blobCreation(indexFile);
       }
       else {
          String hashOfPreviousCommit = fileContent(headFile);
@@ -136,7 +158,7 @@ public abstract class Git implements GitInterface {
          BufferedReader br = new BufferedReader (new FileReader (previousCommit));
          String treeHash = br.readLine();
          br.close();
-         treeHash.replace("tree: ", "");
+         treeHash = treeHash.replace("tree: ", "");
          File previousTree = new File ("./git/objects", treeHash);
          String contentsOfPrevious = fileContent(previousTree);
          String updatedTree = contentsOfPrevious + fileContent(indexFile);
@@ -204,9 +226,6 @@ public abstract class Git implements GitInterface {
       else{
          name = SHA1Hashing(file); // getting hashed name
          File blobFile = new File("./git/objects/" + name); // the blob file
-         BufferedWriter headBR = new BufferedWriter(new FileWriter("./git/HEAD"));
-         headBR.write(name);
-         headBR.close();
 
          // creates the blob file
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (file))) {
@@ -230,26 +249,26 @@ public abstract class Git implements GitInterface {
          if (!checks.ready()) {
             if (file.isDirectory()){
                if(isInHomeDir(file))
-                  bufferedWriter.write("tree " + name + " " + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getName());
                else
-                  bufferedWriter.write("tree " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getName() + "/" + file.getName());
             }else{
                if (isInHomeDir(file))
-                  bufferedWriter.write("blob " + name + " " + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getName());
                else
-                  bufferedWriter.write("blob " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getName() + "/" + file.getName());
             }
          } else {
             if (file.isDirectory()){
                if (isInHomeDir(file))
                   bufferedWriter.write("\ntree " + name + " " + file.getName());
                else
-                  bufferedWriter.write("\ntree " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getName() + "/" + file.getName());
             } else {
                if(isInHomeDir(file))
                   bufferedWriter.write("\nblob " + name + " " + file.getName());
                else
-                  bufferedWriter.write("\nblob " + name + " " + file.getParentFile().getName() + "/" + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getName() + "/" + file.getName());
             }
          }
 
@@ -263,6 +282,6 @@ public abstract class Git implements GitInterface {
    }
 
    private static boolean isInHomeDir (File file){
-      return file.getParentFile().getPath().equals(".");
+      return file.getPath().equals(".");
    }
 }
