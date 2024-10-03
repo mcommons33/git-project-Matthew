@@ -249,14 +249,14 @@ public class Git implements GitInterface {
          if (!checks.ready()) {
             if (file.isDirectory()){
                if(isInHomeDir(file))
-                  bufferedWriter.write("tree " + name + " " + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getName());
                else
-                  bufferedWriter.write("tree " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getName() + "/" + file.getName());
             }else{
                if (isInHomeDir(file))
-                  bufferedWriter.write("blob " + name + " " + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getName());
                else
-                  bufferedWriter.write("blob " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getName() + "/" + file.getName());
             }
          } else {
             if (file.isDirectory()){
