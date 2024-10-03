@@ -5,9 +5,6 @@ public class CommitTester {
         Git myGit = new Git();
         myGit.initalizeGitRepo();
         myGit.stage("tester1");
-        myGit.stage("tester2");
-        myGit.commit("Aviv Pilipski", "Updated Tester1 and Tester2");
-        myGit.stage("tester3");
-        myGit.commit("Aviv Pilipski", "Added file3");
+        myGit.stage("tester1");
     }
 }

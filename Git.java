@@ -161,7 +161,7 @@ public class Git implements GitInterface {
          treeHash = treeHash.replace("tree: ", "");
          File previousTree = new File ("./git/objects", treeHash);
          String contentsOfPrevious = fileContent(previousTree);
-         String updatedTree = contentsOfPrevious + fileContent(indexFile);
+         String updatedTree = contentsOfPrevious + "\n" + fileContent(indexFile);
          String hashTree = SHA1Hashing(updatedTree);
          File treeFile = new File ("./git/objects", hashTree);
          BufferedWriter treeWriter = new BufferedWriter(new FileWriter(treeFile));
@@ -176,8 +176,12 @@ public class Git implements GitInterface {
    }
    public String makeCommit(String author, String message) throws IOException {
       File headFile = new File ("./git/HEAD");
-      StringBuilder sb = new StringBuilder("");
-      sb.append("tree: ").append(generateRootTree()).append("\n").append("parent: ").append(fileContent(headFile)).append("\n").append(author + "\n").append(java.time.LocalDate.now() + "\n").append(message);
+      StringBuilder sb = new StringBuilder();
+sb.append("tree: ").append(generateRootTree()).append("\n")
+  .append("parent: ").append(fileContent(headFile)).append("\n")
+  .append("author: ").append(author).append("\n")
+  .append("date: ").append(java.time.LocalDate.now()).append("\n")
+  .append("commit summary: ").append(message);
       String commitHash = SHA1Hashing(sb.toString());
       File commitFile = new File ("./git/objects", commitHash);
       commitFile.createNewFile();
@@ -239,45 +243,25 @@ public class Git implements GitInterface {
          }
       }
       // adds a new line into the index file
-      try {
-         FileWriter fw = new FileWriter("./git/index", true);
-         BufferedWriter bufferedWriter = new BufferedWriter(fw);
-         // writes the content into index by first checking to see if the index file has been written into or not, (to determine if a /n is needed)
-         // and then if the file is a directory or not, (to determine if tree or blob) and then if the file is in a subdir or if it is in the home dir
-         // (to determine whether to write the parent dir or not)
-         FileReader checks = new FileReader("./git/index");
-         if (!checks.ready()) {
-            if (file.isDirectory()){
-               if(isInHomeDir(file))
-                  bufferedWriter.write("\ntree " + name + " " + file.getPath());
-               else
-                  bufferedWriter.write("\ntree " + name + " " + file.getPath() + "/" + file.getName());
-            }else{
-               if (isInHomeDir(file))
-                  bufferedWriter.write("\nblob " + name + " " + file.getPath());
-               else
-                  bufferedWriter.write("\nblob " + name + " " + file.getPath() + "/" + file.getName());
-            }
-         } else {
-            if (file.isDirectory()){
-               if (isInHomeDir(file))
-                  bufferedWriter.write("\ntree " + name + " " + file.getPath());
-               else
-                  bufferedWriter.write("\ntree " + name + " " + file.getPath() + "/" + file.getName());
-            } else {
-               if(isInHomeDir(file))
-                  bufferedWriter.write("\nblob " + name + " " + file.getPath());
-               else
-                  bufferedWriter.write("\nblob " + name + " " + file.getPath() + "/" + file.getName());
-            }
+      try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter("./git/index", true))) {
+         String entry = "";
+         File indexFile = new File ("./git/index");
+         String contents = fileContent(indexFile);
+         // Determine if it's a directory or a file and format the entry accordingly
+         if (!contents.contains(name)) {
+            if (file.isDirectory()) {
+               entry = "tree " + name + " " + file.getPath();
+           } else {
+               entry = "blob " + name + " " + file.getPath();
+           }
+           bufferedWriter.write(entry);
+            bufferedWriter.write("\n");
+            bufferedWriter.close();
          }
 
-         // bufferedWriter.write(name + " " + file.getName() + "\n");
-         bufferedWriter.close();
-         checks.close();
-      } catch (IOException e) {
+     } catch (IOException e) {
          e.printStackTrace();
-      }
+     }
 
    }
 
