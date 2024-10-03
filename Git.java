@@ -148,9 +148,9 @@ public class Git implements GitInterface {
       File headFile = new File ("./git/HEAD");
       File indexFile = new File ("./git/index");
       String toReturn = "";
-      if (fileContent(headFile).equals("")) {
-         blobCreation(indexFile);
+      if (headFile.length() == 0) {
          toReturn = SHA1Hashing(indexFile);
+         blobCreation(indexFile);
       }
       else {
          String hashOfPreviousCommit = fileContent(headFile);
@@ -226,9 +226,6 @@ public class Git implements GitInterface {
       else{
          name = SHA1Hashing(file); // getting hashed name
          File blobFile = new File("./git/objects/" + name); // the blob file
-         BufferedWriter headBR = new BufferedWriter(new FileWriter("./git/HEAD"));
-         headBR.write(name);
-         headBR.close();
 
          // creates the blob file
          try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(blobFile.getPath())); BufferedReader br = new BufferedReader(new FileReader (file))) {
