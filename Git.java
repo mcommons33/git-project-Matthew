@@ -249,26 +249,26 @@ public class Git implements GitInterface {
          if (!checks.ready()) {
             if (file.isDirectory()){
                if(isInHomeDir(file))
-                  bufferedWriter.write("\ntree " + name + " " + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getPath());
                else
-                  bufferedWriter.write("\ntree " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getPath() + "/" + file.getName());
             }else{
                if (isInHomeDir(file))
-                  bufferedWriter.write("\nblob " + name + " " + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getPath());
                else
-                  bufferedWriter.write("\nblob " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getPath() + "/" + file.getName());
             }
          } else {
             if (file.isDirectory()){
                if (isInHomeDir(file))
-                  bufferedWriter.write("\ntree " + name + " " + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getPath());
                else
-                  bufferedWriter.write("\ntree " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\ntree " + name + " " + file.getPath() + "/" + file.getName());
             } else {
                if(isInHomeDir(file))
-                  bufferedWriter.write("\nblob " + name + " " + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getPath());
                else
-                  bufferedWriter.write("\nblob " + name + " " + file.getName() + "/" + file.getName());
+                  bufferedWriter.write("\nblob " + name + " " + file.getPath() + "/" + file.getName());
             }
          }
 
