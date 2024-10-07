@@ -1,5 +1,3 @@
-import java.nio.file.*;
-import java.security.MessageDigest;
 import java.io.*;
 
 public class GitTester {
@@ -12,16 +10,22 @@ public class GitTester {
         File tester2 = fileCreation("tester2", "hi\nthis is sonarii");
         Git.blobCreation(tester1);
         Git.blobCreation(tester2);
+        
         File tester3 = fileCreation("tester3", "hmmm");
         Git.blobCreation(tester3);
+
+        
         // testing blob creation: empty dir
         File testDir = new File ("./testDir");
         testDir.mkdir();
         Git.blobCreation(testDir);
+
         // testing blob creation: dir with files
         File testDirFiles = new File ("./testDirFiles");
         testDirFiles.mkdir();
         Git.blobCreation(testDirFiles);
+
+        
         // testing blob creation: dir with files and subdirs
         File testDirDirs = new File ("./testDirDirs");
         File subDirs = new File ("./testDirDirs/test/testSub");
@@ -29,8 +33,7 @@ public class GitTester {
         subDirs.mkdirs();
         Git.blobCreation(testDirDirs);
         // testing file deletion
-        deleteTesters();
-
+        //deleteTesters();
         }
 
     // creates a file with given name and content
