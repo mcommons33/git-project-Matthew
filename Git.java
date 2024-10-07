@@ -26,6 +26,18 @@ public class Git implements GitInterface {
       BufferedWriter headBR = new BufferedWriter(new FileWriter (headFile));
       headBR.write(commitHash);
       headBR.close();      
+      String commit = fileContent(headFile);
+      File commitFile = new File ("./git/objects", commit);
+      BufferedReader br = new BufferedReader (new FileReader (commitFile));
+      String commitFileRootTree = br.readLine();
+      br.close();
+      commitFileRootTree = commitFileRootTree.replace("tree: ", "");
+      File rootTreeFile = new File ("./git/objects", commitFileRootTree);
+      String rootTreeContents = fileContent(rootTreeFile);
+      File indexFile = new File ("./git/index");
+      BufferedWriter indexWriter = new BufferedWriter(new FileWriter(indexFile));
+      indexWriter.write(rootTreeContents);
+      indexWriter.close();
    }
 
    public static void initalizeGitRepo() throws IOException {
